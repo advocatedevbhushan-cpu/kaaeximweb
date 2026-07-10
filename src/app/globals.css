@@ -175,6 +175,18 @@
   background-clip: text;
 }
 
+@utility visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 @utility scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -183,6 +195,8 @@
 @utility text-balance {
   text-wrap: balance;
 }
+
+
 
 :root { color-scheme: light; scroll-behavior: smooth; }
 

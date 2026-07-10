@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <footer className="bg-primary text-white mt-auto">
       <div className="container-main py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Package className="w-6 h-6 text-accent" />

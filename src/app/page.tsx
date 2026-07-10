@@ -120,7 +120,7 @@ export default async function HomePage() {
                   </div>
                 </div>
               </div>
-              <div className="absolute -bottom-6 -right-6 lg:-bottom-8 lg:-right-8 bg-white rounded-xl shadow-2xl p-6 min-w-[280px] animate-scale-in" style={{ animationDelay: '400ms' }}>
+              <div className="relative lg:absolute lg:-bottom-8 lg:-right-8 mt-4 lg:mt-0 bg-white rounded-xl shadow-2xl p-6 min-w-[280px] animate-scale-in" style={{ animationDelay: '400ms' }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center">
                     <Truck className="w-6 h-6 text-accent" />
@@ -146,12 +146,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 lg:py-24 bg-muted/30">
-        <div className="container-main">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="py-16 lg:py-24 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="container-main relative">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {stats.map((stat, i) => (
-              <div key={stat.label} className="card p-6 text-center animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
-                <div className="w-14 h-14 mx-auto mb-4 bg-accent/10 rounded-xl flex items-center justify-center">
+              <div key={stat.label} className="card p-5 lg:p-6 text-center animate-slide-up hover:shadow-lg hover:-translate-y-1 transition-all duration-200" style={{ animationDelay: `${i * 100}ms` }}>
+                <div className="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl flex items-center justify-center">
                   <stat.icon className="w-7 h-7 text-accent" />
                 </div>
                 <div className="text-3xl lg:text-4xl font-bold text-foreground mb-1">{stat.value}</div>
@@ -163,10 +164,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 lg:py-24">
+      <section className="py-16 lg:py-24 relative">
         <div className="container-main">
-          <div className="max-w-2xl mx-auto text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">Browse by Category</h2>
+          <div className="max-w-2xl mx-auto text-center mb-12 lg:mb-16">
+            <span className="inline-block text-xs font-semibold text-accent uppercase tracking-[0.2em] mb-3">Categories</span>
+            <h2 className="text-3xl lg:text-5xl font-bold text-foreground mb-4">Browse by Category</h2>
             <p className="text-lg text-muted-foreground">Explore our comprehensive product range across all categories</p>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -187,16 +189,18 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 lg:py-24 bg-muted/30">
-        <div className="container-main">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-12">
+      <section className="py-16 lg:py-24 bg-muted/30 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-accent/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
+        <div className="container-main relative">
+          <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4 mb-10 lg:mb-14">
             <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">Featured Products</h2>
-              <p className="text-lg text-muted-foreground">Handpicked selections for quality and value</p>
+              <span className="inline-block text-xs font-semibold text-accent uppercase tracking-[0.2em] mb-2">Featured</span>
+              <h2 className="text-3xl lg:text-4xl font-bold text-foreground">Featured Products</h2>
+              <p className="text-muted-foreground mt-2">Handpicked selections for quality and value</p>
             </div>
-            <Link href="/products" className="btn-outline self-center">
+            <Link href="/products" className="btn-outline self-start lg:self-center shrink-0 group">
               View All Products
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -207,12 +211,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 lg:py-24">
+      <section className="py-16 lg:py-24 relative">
         <div className="container-main">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-12">
+          <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4 mb-10 lg:mb-14">
             <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">Best Selling Products</h2>
-              <p className="text-lg text-muted-foreground">Most loved by our customers</p>
+              <span className="inline-block text-xs font-semibold text-accent uppercase tracking-[0.2em] mb-2">Bestsellers</span>
+              <h2 className="text-3xl lg:text-4xl font-bold text-foreground">Best Selling Products</h2>
+              <p className="text-muted-foreground mt-2">Most loved by our customers</p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -260,7 +265,7 @@ export default async function HomePage() {
                 <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 aspect-square flex items-center justify-center">
                   <Truck className="w-32 h-32 text-accent" />
                 </div>
-                <div className="absolute -bottom-4 -right-4 lg:-bottom-6 lg:-right-6 bg-white rounded-xl shadow-2xl p-6 min-w-[280px] animate-scale-in">
+                <div className="relative lg:absolute lg:-bottom-6 lg:-right-6 mt-4 lg:mt-0 bg-white rounded-xl shadow-2xl p-6 min-w-[280px] animate-scale-in">
                   <h4 className="font-bold text-foreground mb-4">Delivery Zones</h4>
                   <div className="space-y-3">
                     {[
@@ -281,10 +286,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 lg:py-24">
-        <div className="container-main">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">Why Choose KAAEXIM?</h2>
+      <section className="py-16 lg:py-24 bg-muted/30 relative overflow-hidden">
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 rounded-full -translate-x-1/3 translate-y-1/3 blur-3xl pointer-events-none" />
+        <div className="container-main relative">
+          <div className="text-center mb-12 lg:mb-16">
+            <span className="inline-block text-xs font-semibold text-accent uppercase tracking-[0.2em] mb-3">Why Us</span>
+            <h2 className="text-3xl lg:text-5xl font-bold text-foreground mb-4">Why Choose KAAEXIM?</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Built for simple ordering and reliable fulfilment</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -301,10 +308,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 lg:py-24 bg-muted/30">
+      <section className="py-16 lg:py-24 relative">
         <div className="container-main">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">Trusted by Businesses Across UP</h2>
+          <div className="text-center mb-12 lg:mb-16">
+            <span className="inline-block text-xs font-semibold text-accent uppercase tracking-[0.2em] mb-3">Testimonials</span>
+            <h2 className="text-3xl lg:text-5xl font-bold text-foreground mb-4">Trusted by Businesses Across UP</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">See what our customers have to say about their experience</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">

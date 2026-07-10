@@ -3,9 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, MapPin, Truck, Shield, CreditCard, Check, AlertTriangle, ArrowLeft, Loader2 } from 'lucide-react';
+import { ShoppingCart, MapPin, Truck, Shield, CreditCard, Check, AlertTriangle, ArrowLeft, Loader2, ChevronRight, Package, Info } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/utils';
+import { useToast } from '@/context/ToastContext';
 import type { ShippingCity } from '@/types';
 
 interface FormData {
@@ -119,9 +120,48 @@ function validateDelivery(
   return { valid: false, errorMessage: null, deliveryCharge: 0 };
 }
 
+function ProgressStepper({ currentStep }: { currentStep: number }) {
+  const steps = [
+    { label: 'Cart', icon: ShoppingCart },
+    { label: 'Checkout', icon: MapPin },
+    { label: 'Confirmation', icon: Check },
+  ];
+
+  return (
+    <div className="flex items-center justify-center mb-8">
+      {steps.map((step, index) => {
+        const isCompleted = index < currentStep;
+        const isActive = index === currentStep;
+        return (
+          <div key={step.label} className="flex items-center">
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+              isActive ? 'bg-accent/10 text-accent' : isCompleted ? 'text-green-600' : 'text-muted-foreground'
+            }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                isCompleted ? 'bg-green-100 text-green-700' :
+                isActive ? 'bg-accent text-white' :
+                'bg-muted text-muted-foreground'
+              }`}>
+                {isCompleted ? <Check className="w-4 h-4" /> : index + 1}
+              </div>
+              <span className="hidden sm:inline font-medium text-sm">{step.label}</span>
+            </div>
+            {index < steps.length - 1 && (
+              <div className={`w-10 h-0.5 mx-1 rounded ${
+                index < currentStep ? 'bg-green-500' : 'bg-border'
+              }`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, clearCart } = useCart();
+  const { toast } = useToast();
   const [cities, setCities] = useState<ShippingCity[]>([]);
   const [loadingCities, setLoadingCities] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -203,6 +243,21 @@ export default function CheckoutPage() {
 
   const isBulkOrder = cartOrderType === 'bulk' || cartOrderType === 'mixed';
 
+  const orderTypeLabel = useMemo(() => {
+    if (cartOrderType === 'small') return 'Small Order';
+    if (cartOrderType === 'bulk') return 'Bulk Order';
+    if (cartOrderType === 'mixed') return 'Mixed Order';
+    return null;
+  }, [cartOrderType]);
+
+  const gstAmount = useMemo(() => {
+    return isBulkOrder ? Math.round(subtotal * 0.05 * 100) / 100 : 0;
+  }, [isBulkOrder, subtotal]);
+
+  const totalAmount = useMemo(() => {
+    return subtotal + deliveryValidation.deliveryCharge + gstAmount;
+  }, [subtotal, deliveryValidation.deliveryCharge, gstAmount]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
@@ -243,9 +298,6 @@ export default function CheckoutPage() {
     if (Object.keys(formErrors).length > 0) return;
 
     if (!deliveryValidation.valid) return;
-
-    const gstAmount = isBulkOrder ? Math.round(subtotal * 0.05 * 100) / 100 : 0;
-    const totalAmount = subtotal + deliveryValidation.deliveryCharge + gstAmount;
 
     setSubmitting(true);
 
@@ -293,6 +345,7 @@ export default function CheckoutPage() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
       setSubmitError(message);
+      toast({ title: 'Order Failed', description: message, variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -318,7 +371,8 @@ export default function CheckoutPage() {
 
   return (
     <div className="container-main py-8">
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
         <Link href="/" className="hover:text-primary transition-colors">Home</Link>
         <span>/</span>
         <Link href="/cart" className="hover:text-primary transition-colors">Cart</Link>
@@ -326,59 +380,14 @@ export default function CheckoutPage() {
         <span className="text-foreground font-medium">Checkout</span>
       </nav>
 
-      <h1 className="text-2xl md:text-3xl font-bold text-primary mb-8">Checkout</h1>
+      {/* Progress Stepper */}
+      <ProgressStepper currentStep={1} />
 
       <form onSubmit={handleSubmit}>
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column - Cart Items + Form */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Cart Summary */}
-            <div className="card p-6">
-              <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5" />
-                Order Items
-              </h2>
-              <div className="divide-y divide-border">
-                {items.map(item => {
-                  const itemType = getItemOrderType(item);
-                  return (
-                    <div key={item.product_id} className="py-3 flex items-center justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Qty: {item.quantity} &times; {formatPrice(item.price)}
-                        </p>
-                        {itemType === 'small' && (
-                          <span className="inline-block text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full mt-1">
-                            Small
-                          </span>
-                        )}
-                        {itemType === 'bulk' && (
-                          <span className="inline-block text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full mt-1">
-                            Bulk
-                          </span>
-                        )}
-                        {itemType === 'invalid' && (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full mt-1">
-                            <AlertTriangle className="w-3 h-3" />
-                            Invalid qty (min bulk: {item.min_bulk_qty})
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm font-semibold text-foreground shrink-0">
-                        {formatPrice(item.price * item.quantity)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex items-center justify-between pt-4 mt-2 border-t border-border">
-                <span className="font-semibold text-foreground">Subtotal</span>
-                <span className="font-bold text-lg text-primary">{formatPrice(subtotal)}</span>
-              </div>
-            </div>
-
-            {/* Delivery Info */}
+          {/* Left Column - Form */}
+          <div className="lg:col-span-2 order-2 lg:order-1 space-y-8">
+            {/* Delivery Details */}
             <div className="card p-6">
               <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
@@ -430,15 +439,15 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label htmlFor="address" className="label">Complete Address / Street <span className="text-danger">*</span></label>
-                  <input
+                  <label htmlFor="address" className="label">Complete Address <span className="text-danger">*</span></label>
+                  <textarea
                     id="address"
                     name="address"
-                    type="text"
-                    className="input-field"
+                    className="input-field resize-none"
                     value={form.address}
                     onChange={handleChange}
-                    placeholder="House / Flat / Street / Area"
+                    placeholder="House / Flat / Street / Area / Landmark"
+                    rows={3}
                   />
                   {errors.address && <p className="text-xs text-danger mt-1">{errors.address}</p>}
                 </div>
@@ -509,28 +518,6 @@ export default function CheckoutPage() {
                     maxLength={6}
                   />
                   {errors.pincode && <p className="text-xs text-danger mt-1">{errors.pincode}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="order_type" className="label">Order Type</label>
-                  <input
-                    id="order_type"
-                    name="order_type"
-                    type="text"
-                    className="input-field bg-muted"
-                    value={
-                      cartOrderType === 'invalid'
-                        ? 'Invalid quantities detected'
-                        : cartOrderType === 'small'
-                          ? 'Small Order'
-                          : cartOrderType === 'bulk'
-                            ? 'Bulk Order'
-                            : cartOrderType === 'mixed'
-                              ? 'Mixed (Small + Bulk)'
-                              : ''
-                    }
-                    readOnly
-                  />
                 </div>
               </div>
             </div>
@@ -606,39 +593,81 @@ export default function CheckoutPage() {
           </div>
 
           {/* Right Column - Order Summary Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="card p-6 sticky top-24 space-y-4">
+          <div className="lg:col-span-1 order-1 lg:order-2">
+            <div className="card p-6 sticky top-24 space-y-5">
               <h2 className="text-lg font-bold text-primary flex items-center gap-2">
                 <Shield className="w-5 h-5" />
                 Order Summary
               </h2>
 
-              <div className="space-y-3 text-sm">
+              {/* Order Type Badge */}
+              {orderTypeLabel && (
+                <div className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
+                  cartOrderType === 'small' ? 'bg-green-50 text-green-700' :
+                  cartOrderType === 'bulk' ? 'bg-blue-50 text-blue-700' :
+                  'bg-purple-50 text-purple-700'
+                }`}>
+                  <Package className="w-4 h-4" />
+                  {orderTypeLabel}
+                </div>
+              )}
+
+              {/* Items List */}
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                  <ShoppingCart className="w-4 h-4" />
+                  Items ({items.length})
+                </h3>
+                <div className="divide-y divide-border max-h-64 overflow-y-auto scrollbar-hide">
+                  {items.map(item => (
+                    <div key={item.product_id} className="py-2.5 flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-foreground truncate">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Qty: {item.quantity} &times; {formatPrice(item.price)}
+                        </p>
+                      </div>
+                      <div className="text-sm font-semibold text-foreground shrink-0">
+                        {formatPrice(item.price * item.quantity)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Breakdown */}
+              <div className="space-y-3 text-sm border-t border-border pt-4">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-semibold">{formatPrice(subtotal)}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Delivery Charge</span>
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5" />
+                    Delivery Charge
+                  </span>
                   <span className="font-semibold">
-                    {selectedCity ? formatPrice(deliveryValidation.deliveryCharge) : '—'}
+                    {selectedCity ? formatPrice(deliveryValidation.deliveryCharge) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
                   </span>
                 </div>
 
                 {isBulkOrder && (
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">GST (5%)</span>
-                    <span className="font-semibold">{formatPrice(Math.round(subtotal * 0.05 * 100) / 100)}</span>
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Info className="w-3.5 h-3.5" />
+                      GST (5%)
+                    </span>
+                    <span className="font-semibold">{formatPrice(gstAmount)}</span>
                   </div>
                 )}
 
                 <div className="border-t border-border pt-3 flex items-center justify-between">
                   <span className="font-bold text-foreground">Total</span>
                   <span className="font-bold text-lg text-primary">
-                    {selectedCity
-                      ? formatPrice(subtotal + deliveryValidation.deliveryCharge + (isBulkOrder ? Math.round(subtotal * 0.05 * 100) / 100 : 0))
-                      : formatPrice(subtotal)}
+                    {formatPrice(totalAmount)}
                   </span>
                 </div>
               </div>

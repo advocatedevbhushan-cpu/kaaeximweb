@@ -5,7 +5,7 @@ import { CheckCircle, Package, MapPin, CreditCard, Truck, ArrowRight } from 'luc
 import type { Order, OrderItem } from '@/types';
 import type { Metadata } from 'next';
 
-initDb();
+await initDb();
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function OrderConfirmationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const db = getDb();
+  const db = await getDb();
 
   const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(parseInt(id)) as Order | undefined;
 

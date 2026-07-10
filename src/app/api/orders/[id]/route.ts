@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, initDb } from '@/lib/db';
 
-initDb();
+await initDb();
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
-  const db = getDb();
+  const db = await getDb();
 
   const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(parseInt(id)) as any;
   if (!order) {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
 export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
-  const db = getDb();
+  const db = await getDb();
   const body = await request.json();
 
   const existing = db.prepare('SELECT id FROM orders WHERE id = ?').get(parseInt(id)) as any;
@@ -56,7 +56,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
-  const db = getDb();
+  const db = await getDb();
 
   const order = db.prepare('SELECT id, order_number FROM orders WHERE id = ?').get(parseInt(id)) as any;
   if (!order) {

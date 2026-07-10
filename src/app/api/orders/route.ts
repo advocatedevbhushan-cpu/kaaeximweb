@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, initDb } from '@/lib/db';
 import { generateOrderNumber } from '@/lib/utils';
 
-initDb();
+await initDb();
 
 export async function GET(request: NextRequest) {
-  const db = getDb();
+  const db = await getDb();
   const searchParams = request.nextUrl.searchParams;
 
   let sql = 'SELECT * FROM orders WHERE 1=1';
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const db = getDb();
+  const db = await getDb();
   const body = await request.json();
 
   const order_number = generateOrderNumber();

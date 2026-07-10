@@ -6,7 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types';
 import { ArrowRight, Truck, Shield, Star, Package, CheckCircle, Users, Award, Zap, Heart, Search, ChevronRight, ChevronLeft } from 'lucide-react';
 
-initDb();
+await initDb();
 
 const stats = [
   { icon: Package, label: 'Products', value: '500+', desc: 'Quality items' },
@@ -30,8 +30,8 @@ const testimonials = [
   { name: 'Amit Singh', role: 'Distributor, Barabanki', content: 'Best wholesale platform in the region. Product range is comprehensive and pricing is transparent.', avatar: 'AS' },
 ];
 
-export default function HomePage() {
-  const db = getDb();
+export default async function HomePage() {
+  const db = await getDb();
 
   const featuredProducts = db.prepare(`
     SELECT p.*, c.name as category_name,

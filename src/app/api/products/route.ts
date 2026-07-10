@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, initDb } from '@/lib/db';
 import { slugify } from '@/lib/utils';
 
-initDb();
+await initDb();
 
 export async function GET(request: NextRequest) {
-  const db = getDb();
+  const db = await getDb();
   const searchParams = request.nextUrl.searchParams;
 
   let sql = `
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const db = getDb();
+  const db = await getDb();
   const body = await request.json();
 
   const slug = body.slug || slugify(body.name);

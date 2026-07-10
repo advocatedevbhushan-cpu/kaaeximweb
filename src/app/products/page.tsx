@@ -5,7 +5,7 @@ import ProductCard from '@/components/ProductCard';
 import type { Product, Category } from '@/types';
 import { Package } from 'lucide-react';
 
-initDb();
+await initDb();
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -21,7 +21,7 @@ export default async function ProductsPage({
 }) {
   const params = await searchParams;
 
-  const db = getDb();
+  const db = await getDb();
 
   const categories = db.prepare('SELECT * FROM categories WHERE status = 1 ORDER BY display_order').all() as Category[];
 

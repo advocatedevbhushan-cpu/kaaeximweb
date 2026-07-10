@@ -8,7 +8,7 @@ import type { Product, ProductImage, ShippingCity } from '@/types';
 import { Package, Check, X } from 'lucide-react';
 import { AddToCartButton } from './add-to-cart-button';
 
-initDb();
+await initDb();
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -16,7 +16,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const db = getDb();
+  const db = await getDb();
   const product = db.prepare('SELECT p.name, p.short_description, p.selling_price FROM products p WHERE p.slug = ?').get(slug) as Pick<Product, 'name' | 'short_description' | 'selling_price'> | undefined;
   if (!product) return { title: 'Product Not Found' };
   return { title: product.name, description: product.short_description || `${product.name} - ${formatPrice(product.selling_price)}` };
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const db = getDb();
+  const db = await getDb();
 
   const product = db.prepare(`
     SELECT p.*, c.name as category_name, c.slug as category_slug

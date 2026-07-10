@@ -7,8 +7,8 @@ export function getOrderType(quantity: number, product: { max_small_qty: number;
   return 'invalid';
 }
 
-export function isCityAllowedForOrderType(cityName: string, orderType: 'small' | 'bulk'): boolean {
-  const db = getDb();
+export async function isCityAllowedForOrderType(cityName: string, orderType: 'small' | 'bulk'): Promise<boolean> {
+  const db = await getDb();
   const city = db.prepare('SELECT * FROM shipping_cities WHERE city_name = ? AND status = 1').get(cityName) as ShippingCity | undefined;
   if (!city) return false;
   if (orderType === 'small' && city.small_order_allowed) return true;
@@ -16,20 +16,20 @@ export function isCityAllowedForOrderType(cityName: string, orderType: 'small' |
   return false;
 }
 
-export function getDeliveryCharge(cityName: string, orderType: 'small' | 'bulk'): number {
-  const db = getDb();
+export async function getDeliveryCharge(cityName: string, orderType: 'small' | 'bulk'): Promise<number> {
+  const db = await getDb();
   const city = db.prepare('SELECT * FROM shipping_cities WHERE city_name = ? AND status = 1').get(cityName) as ShippingCity | undefined;
   if (!city) return 0;
   return orderType === 'small' ? city.small_delivery_charge : city.bulk_delivery_charge;
 }
 
-export function getAvailableCities(): ShippingCity[] {
-  const db = getDb();
+export async function getAvailableCities(): Promise<ShippingCity[]> {
+  const db = await getDb();
   return db.prepare('SELECT * FROM shipping_cities WHERE status = 1').all() as ShippingCity[];
 }
 
-export function validateCartDelivery(cartItems: CartItem[], cityName: string): { valid: boolean; message: string } {
-  const db = getDb();
+export async function validateCartDelivery(cartItems: CartItem[], cityName: string): Promise<{ valid: boolean; message: string }> {
+  const db = await getDb();
   const city = db.prepare('SELECT * FROM shipping_cities WHERE city_name = ? AND status = 1').get(cityName) as ShippingCity | undefined;
 
   if (!city) {

@@ -34,7 +34,7 @@ export async function getAdminUser() {
   const payload = verifyToken(token);
   if (!payload) return null;
 
-  const db = getDb();
+  const db = await getDb();
   const user = db.prepare('SELECT id, name, email, role FROM users WHERE id = ? AND role = ?').get(payload.id, 'admin') as { id: number; name: string; email: string; role: string } | undefined;
   return user || null;
 }

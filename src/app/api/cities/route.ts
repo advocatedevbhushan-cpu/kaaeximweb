@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, initDb } from '@/lib/db';
 
-initDb();
+await initDb();
 
 export async function GET(request: NextRequest) {
-  const db = getDb();
+  const db = await getDb();
   const searchParams = request.nextUrl.searchParams;
   const all = searchParams.get('all') === 'true';
   const sql = all ? 'SELECT * FROM shipping_cities ORDER BY city_name ASC' : 'SELECT * FROM shipping_cities WHERE status = 1 ORDER BY city_name ASC';
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const db = getDb();
+  const db = await getDb();
   const body = await request.json();
 
   const existing = db.prepare('SELECT id FROM shipping_cities WHERE city_name = ?').get(body.city_name);

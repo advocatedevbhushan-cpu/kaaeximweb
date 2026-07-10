@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, initDb } from '@/lib/db';
 
-initDb();
+await initDb();
 
 export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   const { slug } = await context.params;
-  const db = getDb();
+  const db = await getDb();
 
   const product = db.prepare(`
     SELECT p.*, c.name as category_name
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
 
 export async function PUT(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   const { slug } = await context.params;
-  const db = getDb();
+  const db = await getDb();
   const body = await request.json();
 
   const existing = db.prepare('SELECT id FROM products WHERE slug = ?').get(slug) as any;
@@ -82,7 +82,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   const { slug } = await context.params;
-  const db = getDb();
+  const db = await getDb();
 
   const product = db.prepare('SELECT id, name FROM products WHERE slug = ?').get(slug) as any;
   if (!product) {

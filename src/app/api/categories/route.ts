@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, initDb } from '@/lib/db';
 import { slugify } from '@/lib/utils';
 
-initDb();
+await initDb();
 
 export async function GET() {
-  const db = getDb();
+  const db = await getDb();
   const categories = db.prepare('SELECT * FROM categories ORDER BY display_order ASC').all();
   return NextResponse.json(categories);
 }
 
 export async function POST(request: NextRequest) {
-  const db = getDb();
+  const db = await getDb();
   const body = await request.json();
 
   const slug = body.slug || slugify(body.name);

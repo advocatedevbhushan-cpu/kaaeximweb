@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyPassword, generateToken, setAuthCookie } from '@/lib/auth';
 import { getDb, initDb } from '@/lib/db';
 
-initDb();
+await initDb();
 
 export async function POST(request: NextRequest) {
-  const db = getDb();
+  const db = await getDb();
   const body = await request.json();
 
   if (!body.email || !body.password) {

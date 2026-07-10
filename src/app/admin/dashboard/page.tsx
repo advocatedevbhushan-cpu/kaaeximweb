@@ -74,7 +74,8 @@ function HorizontalBar({ label, value, max, color }: { label: string; value: num
 
 export default async function AdminDashboard() {
   initDb();
-  const db = getDb();
+  await initDb();
+  const db = await getDb();
 
   const totalProducts = (db.prepare('SELECT COUNT(*) as count FROM products WHERE status = 1').get() as StatusCount).count;
   const totalOrders = (db.prepare('SELECT COUNT(*) as count FROM orders').get() as StatusCount).count;

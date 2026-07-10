@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, initDb } from '@/lib/db';
 
-initDb();
+await initDb();
 
 export async function GET() {
-  const db = getDb();
+  const db = await getDb();
   const inquiries = db.prepare('SELECT * FROM bulk_inquiries ORDER BY created_at DESC').all();
   return NextResponse.json(inquiries);
 }
 
 export async function POST(request: NextRequest) {
-  const db = getDb();
+  const db = await getDb();
   const body = await request.json();
 
   const result = db.prepare(`

@@ -1,0 +1,8 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="400" fill="#f3f4f6"/>
+  <path d="M200 140C167 140 140 167 140 200C140 233 167 260 200 260C233 260 260 233 260 200C260 167 233 140 200 140Z" fill="#d1d5db"/>
+  <path d="M200 120C155 120 120 155 120 200C120 245 155 280 200 280C245 280 280 245 280 200C280 155 245 120 200 120ZM200 260C166.9 260 140 233.1 140 200C140 166.9 166.9 140 200 140C233.1 140 260 166.9 260 200C260 233.1 233.1 260 200 260Z" fill="#9ca3af"/>
+  <rect x="185" y="155" width="30" height="90" rx="5" fill="#9ca3af"/>
+  <rect x="155" y="185" width="90" height="30" rx="5" fill="#9ca3af"/>
+  <text x="200" y="310" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">Product Image</text>
+</svg>

@@ -28,7 +28,16 @@ export default function Header() {
   const [mobileSubmenu, setMobileSubmenu] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const megaTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { itemCount } = useCart();
+
+  const handleMegaEnter = (href: string) => {
+    if (megaTimeout.current) clearTimeout(megaTimeout.current);
+    setActiveMegaMenu(href);
+  };
+  const handleMegaLeave = () => {
+    megaTimeout.current = setTimeout(() => setActiveMegaMenu(null), 150);
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -64,40 +73,42 @@ export default function Header() {
             {navLinks.map((link) => (
               <div key={link.href} className="relative">
                 {link.hasMegaMenu ? (
-                  <>
+                  <div
+                    className="relative"
+                    onMouseEnter={() => handleMegaEnter(link.href)}
+                    onMouseLeave={handleMegaLeave}
+                  >
                     <button
                       className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground hover:text-accent transition-colors rounded-md"
-                      onMouseEnter={() => setActiveMegaMenu(link.href)}
-                      onMouseLeave={() => setActiveMegaMenu(null)}
                       aria-expanded={activeMegaMenu === link.href}
                       aria-haspopup="true"
                     >
                       {link.label}
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeMegaMenu === link.href ? 'rotate-180' : ''}`} />
                     </button>
                     {activeMegaMenu === link.href && (
                       <div
-                        className="absolute left-0 top-full mt-2 w-[600px] bg-white border border-border rounded-xl shadow-xl p-4 lg:p-6 animate-slide-down z-50"
-                        onMouseEnter={() => setActiveMegaMenu(link.href)}
-                        onMouseLeave={() => setActiveMegaMenu(null)}
+                        className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[640px] bg-white border border-border rounded-2xl shadow-2xl p-5 lg:p-7 animate-slide-down z-50 origin-top"
                         role="menu"
                       >
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-7">
                           {categories.map((cat) => (
-                            <div key={cat.slug} className="space-y-3">
+                            <div key={cat.slug} className="group/cat space-y-2.5">
                               <Link
                                 href={`/products?category=${cat.slug}`}
-                                className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-accent transition-colors"
+                                className="flex items-center gap-2 text-sm font-semibold text-primary group-hover/cat:text-accent transition-colors"
                               >
-                                <cat.icon className="w-4 h-4" />
+                                <span className="w-6 h-6 rounded-md bg-accent/10 flex items-center justify-center">
+                                  <cat.icon className="w-3.5 h-3.5 text-accent" />
+                                </span>
                                 {cat.name}
                               </Link>
-                              <ul className="space-y-1.5" role="menu">
-                                {cat.items.map((item) => (
-                                  <li key={item} role="menuitem">
+                              <ul className="space-y-1" role="menu">
+                                {cat.items.map((item, idx) => (
+                                  <li key={item} role="menuitem" style={{ animationDelay: `${idx * 40}ms` }}>
                                     <Link
                                       href={`/products?category=${cat.slug}&search=${encodeURIComponent(item)}`}
-                                      className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1 px-2 rounded hover:bg-muted"
+                                      className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1 px-2 rounded hover:bg-muted/70"
                                     >
                                       {item}
                                     </Link>
@@ -110,19 +121,19 @@ export default function Header() {
                         <div className="mt-4 lg:mt-6 pt-4 lg:pt-6 border-t border-border">
                           <Link
                             href="/products"
-                            className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-dark transition-colors"
+                            className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-dark transition-colors group"
                           >
                             View All Categories
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
                           </Link>
                         </div>
                       </div>
                     )}
-                  </>
+                  </div>
                 ) : (
                   <Link
                     href={link.href}
-                    className="px-3 py-2 text-sm font-medium text-foreground hover:text-accent transition-colors rounded-md"
+                    className="px-3 py-2 text-sm font-medium text-foreground hover:text-accent transition-colors rounded-md relative after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-accent after:transition-all after:duration-200 hover:after:w-3/4"
                   >
                     {link.label}
                   </Link>

@@ -22,6 +22,38 @@
 
   --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  --animate-slide-down: slide-down 0.2s ease-out;
+  --animate-slide-up: slide-up 0.3s ease-out;
+  --animate-scale-in: scale-in 0.2s ease-out;
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-shimmer: shimmer 1.5s infinite;
+  --animate-float: float 3s ease-in-out infinite;
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 @utility container-main {
@@ -152,7 +184,9 @@
   text-wrap: balance;
 }
 
-:root { color-scheme: light; }
+:root { color-scheme: light; scroll-behavior: smooth; }
+
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--color-background);

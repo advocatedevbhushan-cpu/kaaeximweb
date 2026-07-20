@@ -36,4 +36,5 @@ export default {
       },
     });
   },
-} satisfies ExportedHandler;
+};
+

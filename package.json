@@ -19,7 +19,9 @@
     "sql.js": "^1.14.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260719.1",
     "@netlify/plugin-nextjs": "^5.15.12",
+    "@opennextjs/cloudflare": "^1.20.1",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.12",
@@ -31,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.112.0"
   }
 }

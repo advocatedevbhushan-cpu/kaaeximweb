@@ -1,0 +1,6 @@
+name = "kaaeximweb"
+compatibility_date = "2026-07-20"
+
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "kaaeximweb"

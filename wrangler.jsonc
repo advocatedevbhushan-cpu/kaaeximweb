@@ -1,9 +1,18 @@
 {
+  "name": "kaaeximweb",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-20",
   "observability": {
     "logs": {
       "enabled": false,
       "invocation_logs": true
     }
-  }
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "kaaeximweb"
+    }
+  ]
 }
 

@@ -1,4 +1,5 @@
 name = "kaaeximweb"
+main = "src/index.ts"
 compatibility_date = "2026-07-20"
 
 [[services]]

@@ -1,12 +1,14 @@
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import path from 'path';
 import fs from 'fs';
+import catalogueProducts from '@/data/catalogue-products-v2.json';
 
 const dbPath = path.join(process.cwd(), 'kaaexim.db');
 const wasmPath = path.join(process.cwd(), 'public', 'sql-wasm.wasm');
 
 let db: DatabaseWrapper;
 let initialized = false;
+const CATALOGUE_DATA_VERSION = '2026-07-22-tcpl-v4-individual-images';
 
 class Statement {
   private sql: string;
@@ -86,7 +88,11 @@ export async function initDb(): Promise<void> {
 
   try {
     const r = _db.prepare("SELECT COUNT(*) as c FROM users LIMIT 1").get();
-    if (r && r.c !== undefined && Number(r.c) >= 0) { initialized = true; return; }
+    if (r && r.c !== undefined && Number(r.c) >= 0) {
+      if (syncCatalogueProducts(_db)) persistDb();
+      initialized = true;
+      return;
+    }
   } catch { }
 
   _db.exec(`
@@ -243,7 +249,64 @@ export async function initDb(): Promise<void> {
   `);
 
   await seedInitialData(_db);
+  syncCatalogueProducts(_db);
   persistDb();
+}
+
+function syncCatalogueProducts(_db: DatabaseWrapper): boolean {
+  _db.exec(`
+    CREATE TABLE IF NOT EXISTS app_metadata (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+  `);
+
+  const current = _db.prepare('SELECT value FROM app_metadata WHERE key = ?').get('catalogue_data_version') as { value?: string } | undefined;
+  if (current?.value === CATALOGUE_DATA_VERSION) return false;
+
+  const sync = _db.transaction(() => {
+    _db.prepare('INSERT OR IGNORE INTO categories (name, slug, description, display_order, status) VALUES (?, ?, ?, ?, ?)').run(
+      'Wellness', 'wellness', 'Herbal supplements, organic foods and wellness products', 5, 1
+    );
+
+    _db.exec('DELETE FROM product_images; DELETE FROM products;');
+    const insertProduct = _db.prepare(`
+      INSERT INTO products (
+        category_id, name, slug, sku, short_description, full_description,
+        mrp, selling_price, bulk_price, unit_type, min_small_qty, max_small_qty,
+        min_bulk_qty, stock_quantity, status, is_featured, is_best_seller
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const insertImage = _db.prepare('INSERT INTO product_images (product_id, image_url, display_order) VALUES (?, ?, 0)');
+
+    for (const product of catalogueProducts) {
+      const result = insertProduct.run(
+        product.category_id,
+        product.name,
+        product.slug,
+        product.sku,
+        product.short_description,
+        product.full_description,
+        product.mrp,
+        product.selling_price,
+        product.bulk_price,
+        product.unit_type,
+        product.min_small_qty,
+        product.max_small_qty,
+        product.min_bulk_qty,
+        product.stock_quantity,
+        product.status,
+        product.is_featured,
+        product.is_best_seller
+      );
+      insertImage.run(result.lastInsertRowid, product.image_url);
+    }
+
+    _db.prepare('INSERT OR REPLACE INTO app_metadata (key, value) VALUES (?, ?)').run('catalogue_data_version', CATALOGUE_DATA_VERSION);
+  });
+
+  sync();
+  return true;
 }
 
 async function seedInitialData(_db: DatabaseWrapper): Promise<void> {

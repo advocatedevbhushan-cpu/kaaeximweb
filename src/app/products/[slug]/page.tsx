@@ -59,7 +59,7 @@ export default async function ProductPage({ params }: PageProps) {
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           <div>
             <div className="aspect-square bg-white rounded-xl overflow-hidden border border-border mb-4">
-              <Image src={getImageUrl(mainImage)} alt={product.name} width={600} height={600} className="w-full h-full object-cover" priority />
+              <Image src={getImageUrl(mainImage)} alt={product.name} width={600} height={600} className="w-full h-full object-contain bg-white p-3" priority />
             </div>
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">

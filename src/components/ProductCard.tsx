@@ -99,12 +99,12 @@ export default function ProductCard({ product, variant = 'default', showWishlist
 
   return (
     <div className="card flex flex-col group relative overflow-hidden">
-      <Link href={`/products/${product.slug}`} className="relative aspect-square bg-muted overflow-hidden">
+      <Link href={`/products/${product.slug}`} className="relative aspect-square bg-[#f7f4ed] overflow-hidden">
         <Image
           src={getImageUrl(imageUrl)}
           alt={product.name}
           fill
-          className="object-cover transition-all duration-500 group-hover:scale-105"
+          className="object-contain bg-white p-4 transition-all duration-500 group-hover:scale-[1.04]"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
         {!inStock && (

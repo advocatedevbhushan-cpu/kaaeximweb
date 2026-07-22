@@ -1,34 +1,68 @@
-import Link from 'next/link';
 import Image from 'next/image';
-import { getDb } from '@/lib/db';
-import { initDb } from '@/lib/db';
+import Link from 'next/link';
+import {
+  ArrowRight,
+  BadgeIndianRupee,
+  Building2,
+  CheckCircle2,
+  MapPin,
+  PackageCheck,
+  ShoppingBag,
+  Sparkles,
+  Truck,
+} from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
+import { getDb, initDb } from '@/lib/db';
 import type { Product } from '@/types';
-import { ArrowRight, Truck, Shield, Star, Package, CheckCircle, Users, Award, Zap, Heart, Search, ChevronRight, ChevronLeft } from 'lucide-react';
 
 await initDb();
 
-const stats = [
-  { icon: Package, label: 'Products', value: '500+', desc: 'Quality items' },
-  { icon: Users, label: 'Happy Clients', value: '2,500+', desc: 'Across regions' },
-  { icon: Award, label: 'Years Experience', value: '15+', desc: 'In supply chain' },
-  { icon: Truck, label: 'Cities Served', value: '3', desc: 'Active locations' },
+const heroProducts = [
+  { src: '/images/products/items/kae-tcp-001.webp', alt: "Ching's Chowmein Noodles", className: 'col-span-2 row-span-2' },
+  { src: '/images/products/items/kae-tcp-060.webp', alt: 'Tata Salt', className: '' },
+  { src: '/images/products/items/kae-tcp-204.webp', alt: 'Tata Soulfull Millet Muesli', className: '' },
+  { src: '/images/products/items/kae-tcp-403.webp', alt: 'Tata Coffee Gold', className: 'col-span-2' },
 ];
 
-const features = [
-  { icon: Zap, title: 'Fast Ordering', desc: 'Streamlined platform for quick product selection and checkout' },
-  { icon: Shield, title: 'Quality Assured', desc: 'All products verified for quality and compliance standards' },
-  { icon: Truck, title: 'Reliable Delivery', desc: 'Timely delivery across Lucknow, Barabanki, and Ayodhya' },
-  { icon: Star, title: 'Bulk Pricing', desc: 'Competitive wholesale rates for institutional buyers' },
-  { icon: Heart, title: 'Customer First', desc: 'Dedicated support for retail and bulk customers alike' },
-  { icon: Award, title: 'Trusted Partner', desc: 'Private Limited company with proven track record' },
+const collections = [
+  {
+    title: 'Kitchen essentials',
+    eyebrow: 'Dals, salt & spices',
+    image: '/images/products/items/kae-tcp-097.webp',
+    href: '/products?search=Tata+Sampann',
+    tint: 'from-amber-50 to-orange-100/70',
+  },
+  {
+    title: 'Tea & coffee',
+    eyebrow: 'Everyday beverages',
+    image: '/images/products/items/kae-tcp-298.webp',
+    href: '/products?search=Tea',
+    tint: 'from-emerald-50 to-teal-100/70',
+  },
+  {
+    title: 'Breakfast & cereals',
+    eyebrow: 'Wholesome mornings',
+    image: '/images/products/items/kae-tcp-214.webp',
+    href: '/products?search=Soulfull',
+    tint: 'from-rose-50 to-orange-100/70',
+  },
+  {
+    title: 'Wellness',
+    eyebrow: 'Teas & supplements',
+    image: '/images/products/items/kae-tcp-249.webp',
+    href: '/products?search=Organic+India',
+    tint: 'from-lime-50 to-green-100/70',
+  },
 ];
 
-const testimonials = [
-  { name: 'Rajesh Kumar', role: 'Store Owner, Ayodhya', content: 'KAAEXIM has transformed how I stock my store. The bulk pricing is excellent and delivery is always on time.', avatar: 'RK' },
-  { name: 'Priya Sharma', role: 'Procurement Manager, Lucknow', content: 'We order institutional supplies monthly. The platform is intuitive and their customer service is outstanding.', avatar: 'PS' },
-  { name: 'Amit Singh', role: 'Distributor, Barabanki', content: 'Best wholesale platform in the region. Product range is comprehensive and pricing is transparent.', avatar: 'AS' },
-];
+function withImage(product: Product & { first_image?: string }) {
+  return {
+    ...product,
+    images: product.first_image
+      ? [{ id: 0, product_id: product.id, image_url: product.first_image, display_order: 0 }]
+      : [],
+  };
+}
 
 export default async function HomePage() {
   const db = await getDb();
@@ -38,374 +72,163 @@ export default async function HomePage() {
       (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY display_order LIMIT 1) as first_image
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
-    WHERE p.is_featured = 1 AND p.status = 1
-    ORDER BY p.created_at DESC
+    WHERE p.sku IN ('KAE-TCP-001','KAE-TCP-043','KAE-TCP-075','KAE-TCP-097','KAE-TCP-204','KAE-TCP-229','KAE-TCP-279','KAE-TCP-403')
+      AND p.status = 1
+    ORDER BY CASE p.sku
+      WHEN 'KAE-TCP-001' THEN 1 WHEN 'KAE-TCP-043' THEN 2 WHEN 'KAE-TCP-075' THEN 3
+      WHEN 'KAE-TCP-097' THEN 4 WHEN 'KAE-TCP-204' THEN 5 WHEN 'KAE-TCP-229' THEN 6
+      WHEN 'KAE-TCP-279' THEN 7 ELSE 8 END
     LIMIT 8
   `).all() as (Product & { first_image?: string; category_name?: string })[];
 
-  const bestSellers = db.prepare(`
-    SELECT p.*, c.name as category_name,
-      (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY display_order LIMIT 1) as first_image
-    FROM products p
-    LEFT JOIN categories c ON p.category_id = c.id
-    WHERE p.is_best_seller = 1 AND p.status = 1
-    ORDER BY p.created_at DESC
-    LIMIT 4
-  `).all() as (Product & { first_image?: string; category_name?: string })[];
-
-  const categories = db.prepare('SELECT * FROM categories WHERE status = 1 ORDER BY display_order').all();
-
   return (
-    <div className="animate-fade-in">
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary-light to-primary pt-16 pb-20 lg:pt-24 lg:pb-28">
-        <div className="absolute inset-0 bg-[url('/images/hero-pattern.svg')] opacity-5" />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
-        <div className="container-main relative">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            <div className="animate-slide-up">
-              <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium mb-6">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
+    <div className="overflow-hidden bg-[#fbfaf6]">
+      <section className="relative border-b border-[#e8e2d7] bg-[#f3eee3]">
+        <div className="absolute inset-0 opacity-60 [background-image:radial-gradient(circle_at_15%_20%,rgba(232,122,63,.18),transparent_28%),radial-gradient(circle_at_82%_18%,rgba(30,94,76,.16),transparent_25%)]" />
+        <div className="container-main relative grid min-h-[670px] items-center gap-12 py-14 lg:grid-cols-[1.02fr_.98fr] lg:py-20">
+          <div className="max-w-2xl animate-slide-up">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/70 px-4 py-2 text-sm font-semibold text-primary shadow-sm backdrop-blur">
+              <Sparkles className="h-4 w-4 text-accent" />
+              421 everyday products, ready to order
+            </div>
+            <h1 className="text-balance text-5xl font-bold leading-[1.02] tracking-[-0.045em] text-primary sm:text-6xl lg:text-7xl">
+              Everyday essentials for homes and businesses.
+            </h1>
+            <p className="mt-7 max-w-xl text-lg leading-8 text-[#5f665f] sm:text-xl">
+              Shop trusted food, beverage and wellness brands with clear retail and bulk pricing, delivered across Ayodhya, Lucknow and Barabanki.
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Link href="/products" className="btn-primary btn-lg group rounded-full px-7 py-3.5 shadow-lg shadow-accent/20">
+                Shop all products
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+              <Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/20 bg-white/70 px-7 py-3.5 font-semibold text-primary transition hover:border-primary hover:bg-white">
+                Request a bulk quote
+              </Link>
+            </div>
+            <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-sm text-[#59645f]">
+              {['GST-ready invoices', 'Bulk rates shown clearly', 'Local delivery support'].map((item) => (
+                <span key={item} className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" /> {item}
                 </span>
-                Now delivering to Lucknow, Barabanki & Ayodhya
-              </div>
-              <h1 className="text-4xl lg:text-6xl font-bold text-white leading-[1.1] mb-6 text-balance">
-                Quality Products.<br />
-                <span className="gradient-text">Reliable Supply.</span><br />
-                Delivered Where Your Business Needs Them.
-              </h1>
-              <p className="text-lg lg:text-xl text-gray-300 mb-8 max-w-xl">
-                KAAEXIM PRODUCTS PRIVATE LIMITED offers a streamlined product ordering platform for retail and bulk customers across selected delivery locations.
-              </p>
-              <div className="flex flex-wrap gap-4 mb-12">
-                <Link href="/products" className="btn-primary btn-lg group">
-                  Browse Products
-                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                </Link>
-                <Link href="/contact" className="btn-lg border-2 border-white/30 text-white hover:bg-white/10 transition-all px-8 py-3 rounded-lg font-medium">
-                  Request Bulk Quote
-                </Link>
-              </div>
-              <div className="flex flex-wrap items-center gap-8 text-sm text-gray-300">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
-                  <span>No minimum order for Ayodhya delivery</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
-                  <span>Bulk discounts available</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
-                  <span>GST compliant invoicing</span>
-                </div>
-              </div>
+              ))}
             </div>
-            <div className="relative animate-slide-up" style={{ animationDelay: '200ms' }}>
-              <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-2">
-                <div className="bg-gradient-to-br from-white/5 to-white/10 border border-white/10 rounded-xl p-8 aspect-square flex items-center justify-center">
-                  <div className="text-center">
-                    <Package className="w-20 h-20 mx-auto mb-4 text-accent" />
-                    <h3 className="text-2xl font-bold text-white mb-2">Product Catalogue</h3>
-                    <p className="text-gray-300">500+ products across 6 categories</p>
-                    <div className="mt-6 flex justify-center gap-4 text-sm">
-                      <div className="bg-white/10 px-4 py-2 rounded-full">
-                        <span className="text-accent font-bold">12</span> Categories
-                      </div>
-                      <div className="bg-white/10 px-4 py-2 rounded-full">
-                        <span className="text-accent font-bold">500+</span> Products
-                      </div>
-                    </div>
-                  </div>
+          </div>
+
+          <div className="relative mx-auto w-full max-w-[590px] animate-slide-up lg:mx-0" style={{ animationDelay: '120ms' }}>
+            <div className="absolute -inset-8 rounded-[3rem] bg-white/50 blur-2xl" />
+            <div className="relative grid h-[520px] grid-cols-4 grid-rows-3 gap-3 rounded-[2rem] border border-white/80 bg-white/55 p-3 shadow-[0_30px_80px_rgba(43,56,49,.16)] backdrop-blur-sm sm:gap-4 sm:p-4">
+              {heroProducts.map((product, index) => (
+                <div
+                  key={product.src}
+                  className={`relative overflow-hidden rounded-[1.35rem] bg-white shadow-sm ${product.className} ${index === 0 ? 'col-span-2 row-span-3' : index === 3 ? 'col-span-2 row-span-2' : ''}`}
+                >
+                  <Image src={product.src} alt={product.alt} fill priority={index === 0} className="object-contain p-3 sm:p-5" sizes="(max-width: 1024px) 45vw, 25vw" />
                 </div>
+              ))}
+            </div>
+            <div className="absolute -bottom-5 left-6 right-6 flex items-center justify-between rounded-2xl border border-[#e5ded2] bg-white px-5 py-4 shadow-xl sm:left-auto sm:right-6 sm:w-[285px]">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[.18em] text-accent">Delivery area</p>
+                <p className="mt-1 font-bold text-primary">3 cities in Uttar Pradesh</p>
               </div>
-              <div className="relative lg:absolute lg:-bottom-8 lg:-right-8 mt-4 lg:mt-0 bg-white rounded-xl shadow-2xl p-6 min-w-[280px] animate-scale-in" style={{ animationDelay: '400ms' }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center">
-                    <Truck className="w-6 h-6 text-accent" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-foreground">Delivery Coverage</p>
-                    <p className="text-sm text-muted-foreground">3 Active Cities</p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {['Ayodhya', 'Lucknow', 'Barabanki'].map((city, i) => (
-                    <div key={city} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <span className="text-sm font-medium">{city}</span>
-                      <span className="text-xs text-accent font-semibold">
-                        {city === 'Ayodhya' ? 'Small + Bulk' : 'Bulk Only'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <div className="rounded-xl bg-primary/8 p-3"><Truck className="h-6 w-6 text-primary" /></div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-16 lg:py-24 relative">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="container-main relative">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {stats.map((stat, i) => (
-              <div key={stat.label} className="card p-5 lg:p-6 text-center animate-slide-up hover:shadow-lg hover:-translate-y-1 transition-all duration-200" style={{ animationDelay: `${i * 100}ms` }}>
-                <div className="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl flex items-center justify-center">
-                  <stat.icon className="w-7 h-7 text-accent" />
-                </div>
-                <div className="text-3xl lg:text-4xl font-bold text-foreground mb-1">{stat.value}</div>
-                <div className="text-sm font-medium text-muted-foreground">{stat.label}</div>
-                <div className="text-xs text-muted-foreground/70 mt-1">{stat.desc}</div>
-              </div>
-            ))}
-          </div>
+      <section className="border-b border-[#ece7dd] bg-white">
+        <div className="container-main grid divide-y divide-[#ece7dd] py-2 md:grid-cols-3 md:divide-x md:divide-y-0">
+          {[
+            { icon: PackageCheck, title: 'Original catalogue range', copy: 'Individual product listings and pack details' },
+            { icon: BadgeIndianRupee, title: 'Retail and bulk prices', copy: 'Choose the quantity that fits your order' },
+            { icon: Truck, title: 'Local fulfilment', copy: 'Support for Ayodhya, Lucknow and Barabanki' },
+          ].map((item) => (
+            <div key={item.title} className="flex items-center gap-4 px-3 py-6 md:px-8">
+              <div className="rounded-2xl bg-[#f3eee3] p-3"><item.icon className="h-6 w-6 text-primary" /></div>
+              <div><p className="font-bold text-primary">{item.title}</p><p className="mt-1 text-sm text-muted-foreground">{item.copy}</p></div>
+            </div>
+          ))}
         </div>
       </section>
 
-      <section className="py-16 lg:py-24 relative">
+      <section className="py-20 lg:py-28">
         <div className="container-main">
-          <div className="max-w-2xl mx-auto text-center mb-12 lg:mb-16">
-            <span className="inline-block text-xs font-semibold text-accent uppercase tracking-[0.2em] mb-3">Categories</span>
-            <h2 className="text-3xl lg:text-5xl font-bold text-foreground mb-4">Browse by Category</h2>
-            <p className="text-lg text-muted-foreground">Explore our comprehensive product range across all categories</p>
+          <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[.2em] text-accent">Shop by collection</p>
+              <h2 className="mt-3 text-4xl font-bold tracking-[-.035em] text-primary lg:text-5xl">A useful range, not a crowded shelf.</h2>
+            </div>
+            <p className="max-w-md text-base leading-7 text-muted-foreground">Start with what you need today. Every collection opens into individual products with pack size, pricing and stock details.</p>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-            {categories.map((cat: any) => (
-              <Link
-                key={cat.id}
-                href={`/products?category=${cat.slug}`}
-                className="card p-6 text-center hover:border-accent transition-all group"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-accent/10 transition-colors">
-                  <Package className="w-8 h-8 text-primary group-hover:text-accent transition-colors" />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {collections.map((collection) => (
+              <Link key={collection.title} href={collection.href} className={`group relative min-h-[390px] overflow-hidden rounded-[1.75rem] border border-white bg-gradient-to-br ${collection.tint} p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl`}>
+                <div className="relative z-10">
+                  <p className="text-xs font-bold uppercase tracking-[.16em] text-primary/60">{collection.eyebrow}</p>
+                  <h3 className="mt-2 text-2xl font-bold text-primary">{collection.title}</h3>
                 </div>
-                <h3 className="font-semibold text-foreground group-hover:text-accent transition-colors">{cat.name}</h3>
-                <p className="text-xs text-muted-foreground mt-1">View products</p>
+                <div className="absolute inset-x-5 bottom-14 top-24">
+                  <Image src={collection.image} alt="" fill className="object-contain transition duration-500 group-hover:scale-105" sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 22vw" />
+                </div>
+                <span className="absolute bottom-6 left-6 z-10 inline-flex items-center gap-2 font-semibold text-primary">Explore <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-16 lg:py-24 bg-muted/30 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-accent/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
-        <div className="container-main relative">
-          <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4 mb-10 lg:mb-14">
+      <section className="bg-white py-20 lg:py-28">
+        <div className="container-main">
+          <div className="mb-10 flex items-end justify-between gap-6">
             <div>
-              <span className="inline-block text-xs font-semibold text-accent uppercase tracking-[0.2em] mb-2">Featured</span>
-              <h2 className="text-3xl lg:text-4xl font-bold text-foreground">Featured Products</h2>
-              <p className="text-muted-foreground mt-2">Handpicked selections for quality and value</p>
+              <p className="text-sm font-bold uppercase tracking-[.2em] text-accent">Popular picks</p>
+              <h2 className="mt-3 text-4xl font-bold tracking-[-.035em] text-primary lg:text-5xl">Products worth reaching for.</h2>
             </div>
-            <Link href="/products" className="btn-outline self-start lg:self-center shrink-0 group">
-              View All Products
-              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Link>
+            <Link href="/products" className="hidden items-center gap-2 font-semibold text-primary hover:text-accent sm:inline-flex">View all 421 <ArrowRight className="h-4 w-4" /></Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={{ ...product, images: product.first_image ? [{ id: 0, product_id: product.id, image_url: product.first_image, display_order: 0 }] : [] }} />
-            ))}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredProducts.map((product) => <ProductCard key={product.id} product={withImage(product)} showQuickView={false} />)}
           </div>
+          <Link href="/products" className="btn-outline mt-8 w-full rounded-full sm:hidden">View all products</Link>
         </div>
       </section>
 
-      <section className="py-16 lg:py-24 relative">
+      <section className="py-20 lg:py-28">
         <div className="container-main">
-          <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4 mb-10 lg:mb-14">
-            <div>
-              <span className="inline-block text-xs font-semibold text-accent uppercase tracking-[0.2em] mb-2">Bestsellers</span>
-              <h2 className="text-3xl lg:text-4xl font-bold text-foreground">Best Selling Products</h2>
-              <p className="text-muted-foreground mt-2">Most loved by our customers</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {bestSellers.map((product) => (
-              <ProductCard key={product.id} product={{ ...product, images: product.first_image ? [{ id: 0, product_id: product.id, image_url: product.first_image, display_order: 0 }] : [] }} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 lg:py-24 bg-primary text-white">
-        <div className="container-main">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            <div className="lg:order-2">
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 lg:p-12">
-                <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium mb-6">
-                  <Zap className="w-4 h-4" />
-                  Bulk Orders Welcome
-                </div>
-                <h2 className="text-3xl lg:text-4xl font-bold mb-6">Wholesale Pricing for Your Business</h2>
-                <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-                  Whether you run a retail store, office canteen, or institutional kitchen, KAAEXIM offers competitive bulk pricing with reliable delivery across our service areas.
-                </p>
-                <ul className="space-y-4 mb-8">
-                  {['Volume-based pricing tiers', 'Flexible minimum order quantities', 'Priority delivery scheduling', 'Dedicated account management', 'GST-compliant invoicing'].map((item, i) => (
-                    <li key={i} className="flex items-center gap-3 text-gray-200">
-                      <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex flex-wrap gap-4">
-                  <Link href="/products" className="bg-accent hover:bg-accent-dark text-white font-medium px-6 py-3 rounded-lg transition-colors">
-                    Browse Bulk Products
-                  </Link>
-                  <Link href="/contact" className="border-2 border-white/30 text-white hover:bg-white/10 font-medium px-6 py-3 rounded-lg transition-all">
-                    Contact Sales Team
-                  </Link>
-                </div>
+          <div className="grid overflow-hidden rounded-[2.25rem] bg-primary text-white shadow-2xl lg:grid-cols-[.9fr_1.1fr]">
+            <div className="relative min-h-[430px] bg-[#e9e2d4]">
+              <div className="absolute left-[7%] top-[10%] h-[58%] w-[42%] rotate-[-4deg] overflow-hidden rounded-3xl bg-white shadow-xl">
+                <Image src="/images/products/items/kae-tcp-153.webp" alt="Tata Sampann chilli powder" fill className="object-contain p-5" sizes="320px" />
+              </div>
+              <div className="absolute right-[7%] top-[16%] h-[58%] w-[42%] rotate-[4deg] overflow-hidden rounded-3xl bg-white shadow-xl">
+                <Image src="/images/products/items/kae-tcp-298.webp" alt="Tata Tea Gold" fill className="object-contain p-5" sizes="320px" />
+              </div>
+              <div className="absolute bottom-[6%] left-1/2 h-[48%] w-[40%] -translate-x-1/2 overflow-hidden rounded-3xl border-4 border-[#e9e2d4] bg-white shadow-2xl">
+                <Image src="/images/products/items/kae-tcp-403.webp" alt="Tata Coffee Gold" fill className="object-contain p-5" sizes="300px" />
               </div>
             </div>
-            <div className="lg:order-1 relative">
-              <div className="relative aspect-square max-w-lg mx-auto">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-accent/5 rounded-3xl blur-2xl" />
-                <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 aspect-square flex items-center justify-center">
-                  <Truck className="w-32 h-32 text-accent" />
-                </div>
-                <div className="relative lg:absolute lg:-bottom-6 lg:-right-6 mt-4 lg:mt-0 bg-white rounded-xl shadow-2xl p-6 min-w-[280px] animate-scale-in">
-                  <h4 className="font-bold text-foreground mb-4">Delivery Zones</h4>
-                  <div className="space-y-3">
-                    {[
-                      { city: 'Ayodhya', types: 'Small (1-2) + Bulk', color: 'text-success' },
-                      { city: 'Lucknow', types: 'Bulk Orders Only', color: 'text-accent' },
-                      { city: 'Barabanki', types: 'Bulk Orders Only', color: 'text-accent' },
-                    ].map((zone) => (
-                      <div key={zone.city} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                        <span className="font-medium">{zone.city}</span>
-                        <span className={`text-sm font-semibold ${zone.color}`}>{zone.types}</span>
-                      </div>
-                    ))}
+            <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
+              <p className="text-sm font-bold uppercase tracking-[.2em] text-[#f1a46f]">For shops, offices and institutions</p>
+              <h2 className="mt-4 text-4xl font-bold tracking-[-.035em] lg:text-5xl">Bulk ordering without the back-and-forth.</h2>
+              <p className="mt-6 max-w-xl text-lg leading-8 text-white/70">See minimum bulk quantities and business pricing on the product itself. For larger requirements, send us your list and delivery city for a tailored quote.</p>
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                {[
+                  { icon: Building2, text: 'Retailers, offices and institutions' },
+                  { icon: ShoppingBag, text: 'Mixed-product order support' },
+                  { icon: MapPin, text: 'Delivery across three active cities' },
+                  { icon: BadgeIndianRupee, text: 'Clear volume-based pricing' },
+                ].map((item) => (
+                  <div key={item.text} className="flex items-center gap-3 rounded-2xl bg-white/8 p-4 text-sm font-medium text-white/90">
+                    <item.icon className="h-5 w-5 shrink-0 text-[#f1a46f]" /> {item.text}
                   </div>
-                </div>
+                ))}
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 lg:py-24 bg-muted/30 relative overflow-hidden">
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 rounded-full -translate-x-1/3 translate-y-1/3 blur-3xl pointer-events-none" />
-        <div className="container-main relative">
-          <div className="text-center mb-12 lg:mb-16">
-            <span className="inline-block text-xs font-semibold text-accent uppercase tracking-[0.2em] mb-3">Why Us</span>
-            <h2 className="text-3xl lg:text-5xl font-bold text-foreground mb-4">Why Choose KAAEXIM?</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Built for simple ordering and reliable fulfilment</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, i) => (
-              <div key={i} className="card p-6 hover:border-accent transition-all animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
-                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-4">
-                  <feature.icon className="w-6 h-6 text-accent" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
+              <div className="mt-9 flex flex-wrap gap-3">
+                <Link href="/contact" className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-semibold text-white transition hover:bg-accent-dark">Get a bulk quote <ArrowRight className="h-4 w-4" /></Link>
+                <Link href="/bulk-order-policy" className="inline-flex items-center rounded-full border border-white/20 px-6 py-3 font-semibold text-white transition hover:bg-white/10">How bulk orders work</Link>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 lg:py-24 relative">
-        <div className="container-main">
-          <div className="text-center mb-12 lg:mb-16">
-            <span className="inline-block text-xs font-semibold text-accent uppercase tracking-[0.2em] mb-3">Testimonials</span>
-            <h2 className="text-3xl lg:text-5xl font-bold text-foreground mb-4">Trusted by Businesses Across UP</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">See what our customers have to say about their experience</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {testimonials.map((testimonial, i) => (
-              <div key={i} className="card p-6 animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-muted-foreground leading-relaxed mb-6">"{testimonial.content}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent font-bold text-lg">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">{testimonial.name}</p>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 lg:py-24">
-        <div className="container-main">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-6">Ready to Start Ordering?</h2>
-              <p className="text-lg text-muted-foreground mb-8">
-                Join thousands of satisfied customers who trust KAAEXIM for their product supply needs. Create an account or browse as a guest.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Link href="/products" className="btn-primary btn-lg">
-                  Start Shopping
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-                <Link href="/contact" className="btn-outline btn-lg">
-                  Talk to Sales
-                </Link>
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-primary to-primary-light rounded-2xl p-8 lg:p-12 text-white relative overflow-hidden">
-              <div className="absolute inset-0 bg-[url('/images/cta-pattern.svg')] opacity-5" />
-              <div className="relative">
-                <h3 className="text-2xl lg:text-3xl font-bold mb-6">Stay Updated</h3>
-                <p className="text-gray-300 mb-6">Subscribe to our newsletter for product updates, bulk offers, and industry insights.</p>
-                <form className="flex flex-col sm:flex-row gap-3 max-w-md" action="/newsletter" method="POST">
-                  <label htmlFor="email" className="visually-hidden">Email address</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    className="flex-1 input-field bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-accent focus:ring-accent/20"
-                    required
-                  />
-                  <button type="submit" className="btn-primary whitespace-nowrap">
-                    Subscribe
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
-                <p className="text-xs text-gray-500 mt-4">No spam. Unsubscribe anytime.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 bg-primary text-white">
-        <div className="container-main">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div className="p-4">
-              <Truck className="w-10 h-10 mx-auto mb-3 text-accent" />
-              <h3 className="font-semibold text-lg mb-1">Free Delivery</h3>
-              <p className="text-gray-400 text-sm">On bulk orders above ₹5000</p>
-            </div>
-            <div className="p-4">
-              <Shield className="w-10 h-10 mx-auto mb-3 text-accent" />
-              <h3 className="font-semibold text-lg mb-1">Quality Guaranteed</h3>
-              <p className="text-gray-400 text-sm">Verified products only</p>
-            </div>
-            <div className="p-4">
-              <Users className="w-10 h-10 mx-auto mb-3 text-accent" />
-              <h3 className="font-semibold text-lg mb-1">24/7 Support</h3>
-              <p className="text-gray-400 text-sm">Dedicated customer care</p>
-            </div>
-            <div className="p-4">
-              <Award className="w-10 h-10 mx-auto mb-3 text-accent" />
-              <h3 className="font-semibold text-lg mb-1">Easy Returns</h3>
-              <p className="text-gray-400 text-sm">Hassle-free return policy</p>
             </div>
           </div>
         </div>
